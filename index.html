@@ -57,7 +57,7 @@
       const {useEffect, useRef, useState} = React;
 
       // ⚠️ For quick local demos ONLY. Never ship an exposed API key.
-      const OPENAI_API_KEY = "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";
+      const OPENAI_API_KEY = "https://7qmkpshpvjzuik75jetchz2wjy0aidbp.lambda-url.us-east-1.on.aws/";
 
       const SYS_PROMPT = "You are Farm AI Chat, a crisp, helpful assistant. Keep answers concise unless asked to go deep. Use markdown for lists/code.";
 
@@ -103,11 +103,10 @@
 
           try {
             // Stream from Chat Completions
-            const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            const res = await fetch("https://7qmkpshpvjzuik75jetchz2wjy0aidbp.lambda-url.us-east-1.on.aws/", {
               method: "POST",
               headers: {
                 "Content-Type":"application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
               },
               body: JSON.stringify({
                 model: "gpt-4o-mini",
