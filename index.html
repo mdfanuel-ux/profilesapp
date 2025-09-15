@@ -52,6 +52,29 @@
     <div class="wrap">
       <div id="root"></div>
     </div>
+    <script> 
+      const OPENAI_PROXY_URL = "https://0pm91h4b1l.execute-api.us-east-1.amazonaws.com/prod/chat";
+      (function () {
+        const _fetch = window.fetch.bind(window);
+        window.fetch = async function (input, init = {}) {
+          let url = (typeof input === "string") ? input : (input && input.url) || "";
+          if (url.startsWith("https://api.openai.com/")) {
+            const nextInit = { ...init };
+            const headers = new Headers(nextInit.headers || (typeof input !== "string" && input.headers) || {});
+            headers.delete("Authorization"); // never send a key from the browser
+            if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+            nextInit.headers = headers;
+            
+            if (typeof input !== "string" && input instanceof Request) {
+              try { nextInit.body = await input.clone().text(); } catch {}
+            }
+            return _fetch(OPENAI_PROXY_URL, nextInit);
+          }
+          return _fetch(input, init);
+        };
+      })();
+    </script>
+
 
     <script type="text/babel">
       const {useEffect, useRef, useState} = React;
