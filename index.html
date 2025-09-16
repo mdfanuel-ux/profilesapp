@@ -4,50 +4,81 @@
   <meta charset="utf-8"/>
   <title>AI Chatbot</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
   <style>
     :root{
-      --bg:#0b1220;--card:#0f172a;--muted:#1f2937;--ink:#e5e7eb;--ink-dim:#9ca3af;
-      --accent:#22c55e;--danger:#ef4444;--border:#334155;--bubble:#111827;
+      /* Set your farm image here (can be any URL). You can also override with ?bg=... */
+      --bg-url: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1920&q=80'); /* FARM_IMAGE_URL */
+      --ink:#e5e7eb; --ink-dim:#cbd5e1;
+      --glass:#0f172ab3;           /* semi-transparent */
+      --bubble:#0b1220cc;
+      --bubble-user:#0b1627cc;
+      --accent:#22c55e; --danger:#ef4444; --border:#334155aa;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
-    .app{max-width:900px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
-    header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:10}
+    html,body{height:100%}
+    body{margin:0;color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+
+    /* Background image + soft scrim */
+    body::before{
+      content:""; position:fixed; inset:0; z-index:-2;
+      background-image: var(--bg-url);
+      background-size:cover; background-position:center; background-attachment:fixed;
+      filter:brightness(.7) saturate(1.05);
+      transform:translateZ(0);
+    }
+    body::after{
+      content:""; position:fixed; inset:0; z-index:-1;
+      background:
+        radial-gradient(1200px 600px at 85% 15%, transparent 0 50%, rgba(0,0,0,.45) 80%),
+        linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.5));
+    }
+
+    .app{max-width:900px; height:100dvh; margin:0 auto; display:flex; flex-direction:column}
+    header, .foot{
+      background:var(--glass); backdrop-filter: blur(10px);
+      border:1px solid var(--border);
+    }
+    header{display:flex;align-items:center;justify-content:space-between;margin:12px;border-radius:14px;padding:12px 16px}
     .brand{display:flex;gap:10px;align-items:center}
     .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
     .title{font-weight:700}
-    .controls{display:flex;align-items:center;gap:14px;color:var(--ink-dim)}
+    .pill{padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink-dim)}
+    .controls{display:flex;align-items:center;gap:14px}
+    .btn{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}
+    .btn:hover{border-color:#475569}
     .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
-    .switch{position:relative;width:42px;height:24px;border-radius:999px;background:var(--muted);transition:.2s;display:inline-block;vertical-align:middle}
+    .switch{position:relative;width:42px;height:24px;border-radius:999px;background:rgba(255,255,255,.15);transition:.2s;display:inline-block}
     .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
     .switch.on{background:var(--accent)}
     .switch.on::after{left:21px}
-    .btn{border:1px solid var(--border);background:transparent;color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}
-    .btn:hover{border-color:#475569}
-    .error{display:none;margin:12px 20px 0;background:#1f2937;border:1px solid var(--danger);color:#fecaca;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
-    .chat{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+
+    .error{display:none;margin:0 12px 8px;background:rgba(239,68,68,.15);border:1px solid var(--danger);color:#ffe2e2;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
+
+    .chat{flex:1;overflow:auto;padding:8px 12px;display:flex;flex-direction:column;gap:12px}
     .msg{display:flex;gap:10px;max-width:85%}
     .msg.user{align-self:flex-end;flex-direction:row-reverse}
-    .avatar{flex:0 0 32px;height:32px;border-radius:8px;background:var(--muted);display:grid;place-items:center;color:#cbd5e1;font-weight:700}
-    .bubble{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bubble);white-space:pre-wrap;word-break:break-word}
-    .msg.user .bubble{background:#111b2e}
-    .foot{padding:12px 20px;border-top:1px solid var(--border);background:var(--card)}
+    .avatar{flex:0 0 32px;height:32px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#f1f5f9;font-weight:700}
+    .bubble{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bubble);backdrop-filter: blur(4px);white-space:pre-wrap;word-break:break-word}
+    .msg.user .bubble{background:var(--bubble-user)}
+    .typing{opacity:.85}
+
+    .foot{margin:0 12px 12px;border-radius:14px;padding:12px}
     .composer{display:flex;gap:10px}
-    textarea{flex:1;resize:vertical;min-height:58px;max-height:40dvh;padding:12px;border-radius:12px;background:#0b1220;border:1px solid var(--border);color:var(--ink)}
+    textarea{flex:1;resize:vertical;min-height:58px;max-height:40dvh;padding:12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--border);color:var(--ink)}
     .send{background:var(--accent);border:0;color:#06220f;padding:0 16px;border-radius:12px;font-weight:700;cursor:pointer}
     .send[disabled]{opacity:.6;cursor:not-allowed}
-    .typing{opacity:.8}
-    .kbd{font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:var(--ink-dim)}
-    .pill{padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--ink-dim)}
-    .row{display:flex;align-items:center;gap:8px}
-    a{color:#93c5fd;text-decoration:none}
-    a:hover{text-decoration:underline}
+    .row{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:8px;color:var(--ink-dim)}
+    a{color:#93c5fd;text-decoration:none} a:hover{text-decoration:underline}
   </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand"><div class="dot"></div><div class="title">AI Chatbot</div><span class="pill" id="api-pill"></span></div>
+    <div class="brand">
+      <div class="dot"></div><div class="title">AI Chatbot</div>
+      <span class="pill" id="api-pill"></span>
+    </div>
     <div class="controls">
       <div class="toggle" id="remember-toggle">
         <div class="switch" id="remember-switch" aria-hidden="true"></div>
@@ -66,7 +97,7 @@
       <textarea id="input" placeholder="Type a message… (Shift+Enter for newline)"></textarea>
       <button class="send" id="sendBtn">Send</button>
     </div>
-    <div class="row" style="margin-top:8px;justify-content:space-between">
+    <div class="row">
       <div class="kbd">Enter = send · Shift+Enter = newline</div>
       <div class="kbd">Model: <span id="modelName">gpt-4o-mini</span></div>
     </div>
@@ -74,14 +105,16 @@
 </div>
 
 <script>
-  // === Configuration (edit this line) ===
-  const DEFAULT_API_URL = "https://fat-pike-35.deno.dev"; // <— replace with your Deno Deploy URL (or working proxy)
+  /* ====== Config ====== */
+  const DEFAULT_API_URL = "https://fat-pike-35.deno.dev";   // <-- put your proxy URL here
   const MODEL = "gpt-4o-mini";
   const SYS_PROMPT = "You are a helpful assistant.";
 
-  // Allow ?api=https://... override without editing the file
-  const urlParams = new URL(location.href).searchParams;
-  const API = urlParams.get("api") || DEFAULT_API_URL;
+  // URL overrides: ?api=..., ?bg=...
+  const params = new URL(location.href).searchParams;
+  const API = params.get("api") || DEFAULT_API_URL;
+  const BG  = params.get("bg");
+  if (BG) document.documentElement.style.setProperty("--bg-url", `url('${BG}')`);
 
   // Elements
   const chatEl   = document.getElementById("chat");
@@ -92,14 +125,13 @@
   const rememberSwitch = document.getElementById("remember-switch");
   const rememberToggle = document.getElementById("remember-toggle");
   const newChatBtn = document.getElementById("newChatBtn");
-
-  apiPill.textContent = new URL(API).hostname;
+  apiPill.textContent = (function(u){ try{ return new URL(u).hostname }catch{ return u } })(API);
 
   // State
   let messages = [];
   let busy = false;
 
-  // Remember chat toggle (default OFF = clears each refresh)
+  // Remember chat (off by default)
   const LS_KEY = "ai_chatbot_messages";
   const LS_REMEMBER = "ai_chatbot_remember";
   function loadRememberState(){
@@ -112,14 +144,10 @@
     rememberSwitch.classList.toggle("on", on);
     if (!on) localStorage.removeItem(LS_KEY);
   }
-
-  // Load messages if remember is on
   function loadHistory(){
     if (loadRememberState()){
       try { messages = JSON.parse(localStorage.getItem(LS_KEY) || "[]") } catch { messages = [] }
-    } else {
-      messages = [];
-    }
+    } else { messages = []; }
     renderAll();
   }
   function persist(){
@@ -129,61 +157,30 @@
   }
 
   // UI helpers
-  function showError(msg){
-    errBox.style.display = "block";
-    errBox.textContent = msg;
-  }
-  function clearError(){
-    errBox.style.display = "none";
-    errBox.textContent = "";
-  }
-  function addMsg(role, content){
-    messages.push({ role, content });
-    renderOne(role, content);
-    persist();
-    scrollToBottom();
-  }
+  function showError(msg){ errBox.style.display="block"; errBox.textContent=msg }
+  function clearError(){ errBox.style.display="none"; errBox.textContent="" }
+  function addMsg(role, content){ messages.push({role,content}); renderOne(role,content); persist(); scrollToBottom(); }
   function renderOne(role, content){
     const row = document.createElement("div");
     row.className = "msg " + (role === "user" ? "user" : "assistant");
-    const avatar = document.createElement("div");
-    avatar.className = "avatar";
-    avatar.textContent = role === "user" ? "U" : "A";
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = content;
-    row.appendChild(avatar);
-    row.appendChild(bubble);
-    chatEl.appendChild(row);
+    const avatar = document.createElement("div"); avatar.className="avatar"; avatar.textContent = role === "user" ? "U" : "A";
+    const bubble = document.createElement("div"); bubble.className="bubble"; bubble.textContent = content;
+    row.appendChild(avatar); row.appendChild(bubble); chatEl.appendChild(row);
   }
-  function renderAll(){
-    chatEl.innerHTML = "";
-    messages.forEach(m => renderOne(m.role, m.content));
-    scrollToBottom();
-  }
+  function renderAll(){ chatEl.innerHTML=""; messages.forEach(m=>renderOne(m.role,m.content)); scrollToBottom(); }
   function scrollToBottom(){ chatEl.scrollTop = chatEl.scrollHeight }
-
-  function setBusy(v){
-    busy = v;
-    sendBtn.disabled = v;
-    inputEl.disabled = v;
-  }
+  function setBusy(v){ busy=v; sendBtn.disabled=v; inputEl.disabled=v; }
 
   function typingBubble(){
     const row = document.createElement("div");
     row.className = "msg assistant typing";
-    const avatar = document.createElement("div");
-    avatar.className = "avatar"; avatar.textContent = "A";
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.textContent = "…";
-    row.appendChild(avatar); row.appendChild(bubble);
-    chatEl.appendChild(row);
-    scrollToBottom();
-    return { row, bubble };
+    const avatar = document.createElement("div"); avatar.className="avatar"; avatar.textContent="A";
+    const bubble = document.createElement("div"); bubble.className="bubble"; bubble.textContent="…";
+    row.appendChild(avatar); row.appendChild(bubble); chatEl.appendChild(row);
+    scrollToBottom(); return {row,bubble};
   }
 
-  // Send flow (non-streaming)
+  // Send (non-streaming)
   async function send(){
     const text = inputEl.value.trim();
     if (!text || busy) return;
@@ -194,64 +191,36 @@
     const typing = typingBubble();
 
     try{
-      const payload = {
-        model: MODEL,
-        messages: [{ role: "system", content: SYS_PROMPT }, ...messages]
-      };
+      const payload = { model: MODEL, messages: [{role:"system", content: SYS_PROMPT}, ...messages] };
+      const res = await fetch(API, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
 
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      let data=null, raw="";
-      try{ data = await res.json(); }catch{ try{ raw = await res.text(); }catch{} }
-
+      let data=null, raw=""; try{ data = await res.json(); }catch{ try{ raw = await res.text(); }catch{} }
       if(!res.ok){
         const msg = data ? JSON.stringify(data) : (raw || res.statusText);
-        showError(`HTTP ${res.status}: ${msg}`);
-        typing.row.remove();
-        setBusy(false);
-        return;
+        showError(`HTTP ${res.status}: ${msg}`); typing.row.remove(); setBusy(false); return;
       }
 
       const assistant = data?.choices?.[0]?.message?.content ?? "";
       typing.bubble.textContent = assistant || "(no content)";
       messages.push({ role:"assistant", content: assistant || "(no content)" });
-      persist();
-      scrollToBottom();
+      persist(); scrollToBottom();
     }catch(e){
-      typing.row.remove();
-      showError(e?.message || String(e) || "Request failed");
-    }finally{
-      setBusy(false);
-    }
+      typing.row.remove(); showError(e?.message || String(e) || "Request failed");
+    }finally{ setBusy(false); }
   }
 
   // Events
   sendBtn.addEventListener("click", send);
-  inputEl.addEventListener("keydown", (e)=>{
-    if (e.key === "Enter" && !e.shiftKey){
-      e.preventDefault();
-      send();
-    }
-  });
+  inputEl.addEventListener("keydown", (e)=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }});
+  document.getElementById("modelName").textContent = MODEL;
   rememberToggle.addEventListener("click", ()=>{
     const on = !(localStorage.getItem(LS_REMEMBER) === "1");
-    setRemember(on);
-    if (!on) { messages = []; renderAll(); }
+    setRemember(on); if (!on){ messages=[]; renderAll(); }
   });
-  newChatBtn.addEventListener("click", ()=>{
-    messages = [];
-    persist();
-    renderAll();
-  });
+  document.getElementById("newChatBtn").addEventListener("click", ()=>{ messages=[]; persist(); renderAll(); });
 
   // Init
-  document.getElementById("modelName").textContent = MODEL;
   loadHistory();
 </script>
 </body>
 </html>
-
