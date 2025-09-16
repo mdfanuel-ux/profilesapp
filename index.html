@@ -2,58 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>AI Chatbot</title>
+  <title>Farm AI Chat — Auth Gate Polished</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
   <style>
     :root{
-      /* Set your farm image here (can be any URL). You can also override with ?bg=... */
-      --bg-url: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2070&auto=format&fit=crop'); /* FARM_IMAGE_URL */
-      --ink:#e5e7eb; --ink-dim:#cbd5e1;
-      --glass:#0f172ab3;           /* semi-transparent */
-      --bubble:#0b1220cc;
-      --bubble-user:#0b1627cc;
-      --accent:#22c55e; --danger:#ef4444; --border:#334155aa;
+      --bg-url: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2070&auto=format&fit=crop');
+      --ink:#e5e7eb; --ink-dim:#cbd5e1; --muted:#94a3b8;
+      --glass:#0b1220b3;
+      --bubble:#0b1220cc; --bubble-user:#0b1627cc;
+      --accent:#22c55e; --accent-ink:#06220f;
+      --danger:#ef4444; --border:#334155aa;
+      --ring:#22c55e;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
-
-    /* Background image + soft scrim */
     body::before{
       content:""; position:fixed; inset:0; z-index:-2;
       background-image: var(--bg-url);
       background-size:cover; background-position:center; background-attachment:fixed;
-      filter:brightness(.7) saturate(1.05);
+      filter:brightness(.78) saturate(1.05);
       transform:translateZ(0);
     }
     body::after{
       content:""; position:fixed; inset:0; z-index:-1;
       background:
         radial-gradient(1200px 600px at 85% 15%, transparent 0 50%, rgba(0,0,0,.45) 80%),
-        linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.5));
+        linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.55));
     }
 
-    .app{max-width:900px; height:100dvh; margin:0 auto; display:flex; flex-direction:column}
-    header, .foot{
-      background:var(--glass); backdrop-filter: blur(10px);
-      border:1px solid var(--border);
-    }
-    header{display:flex;align-items:center;justify-content:space-between;margin:12px;border-radius:14px;padding:12px 16px}
+    .app{max-width:920px; height:100dvh; margin:0 auto; display:flex; flex-direction:column}
+    header, .foot{background:var(--glass); backdrop-filter: blur(12px); border:1px solid var(--border)}
+    header{display:flex;align-items:center;justify-content:space-between;margin:12px;border-radius:16px;padding:12px 16px}
     .brand{display:flex;gap:10px;align-items:center}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
-    .title{font-weight:700}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+    .title{font-weight:700; letter-spacing:.2px}
     .pill{padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.06);color:var(--ink-dim)}
-    .controls{display:flex;align-items:center;gap:14px}
-    .btn{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}
+    .controls{display:flex;align-items:center;gap:14px; flex-wrap:wrap}
+    .btn{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--ink);padding:8px 12px;border-radius:12px;cursor:pointer}
     .btn:hover{border-color:#475569}
-    .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
-    .switch{position:relative;width:42px;height:24px;border-radius:999px;background:rgba(255,255,255,.15);transition:.2s;display:inline-block}
-    .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
-    .switch.on{background:var(--accent)}
-    .switch.on::after{left:21px}
 
-    .error{display:none;margin:0 12px 8px;background:rgba(239,68,68,.15);border:1px solid var(--danger);color:#ffe2e2;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
+    .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+    .switch{position:relative;width:46px;height:26px;border-radius:999px;background:rgba(255,255,255,.15);transition:.2s;display:inline-block}
+    .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+    .switch.on{background:var(--accent)} .switch.on::after{left:23px}
+
+    .error{display:none;margin:0 12px 8px;background:rgba(239,68,68,.15);border:1px solid var(--danger);color:#ffe2e2;padding:10px 12px;border-radius:12px;white-space:pre-wrap}
 
     .chat{flex:1;overflow:auto;padding:8px 12px;display:flex;flex-direction:column;gap:12px}
     .msg{display:flex;gap:10px;max-width:85%}
@@ -63,28 +58,92 @@
     .msg.user .bubble{background:var(--bubble-user)}
     .typing{opacity:.85}
 
-    .foot{margin:0 12px 12px;border-radius:14px;padding:12px}
+    .foot{margin:0 12px 12px;border-radius:16px;padding:12px}
     .composer{display:flex;gap:10px}
-    textarea{flex:1;resize:vertical;min-height:58px;max-height:40dvh;padding:12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--border);color:var(--ink)}
-    .send{background:var(--accent);border:0;color:#06220f;padding:0 16px;border-radius:12px;font-weight:700;cursor:pointer}
+    textarea{flex:1;resize:vertical;min-height:58px;max-height:40dvh;padding:12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--border);color:var(--ink);outline: none}
+    textarea:focus{box-shadow:0 0 0 2px var(--ring)}
+    .send{background:var(--accent);border:0;color:var(--accent-ink);padding:0 16px;border-radius:12px;font-weight:700;cursor:pointer}
     .send[disabled]{opacity:.6;cursor:not-allowed}
     .row{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:8px;color:var(--ink-dim)}
+
     a{color:#93c5fd;text-decoration:none} a:hover{text-decoration:underline}
+
+    /* ===== Auth overlay (polished) ===== */
+    .auth{position:fixed; inset:0; z-index:1000; display:grid; place-items:center;
+      padding:24px; background:rgba(1,6,18,.55); backdrop-filter: blur(6px);}
+    .auth-card{
+      width:420px; max-width:96vw; position:relative;
+      border-radius:20px; padding:20px; color:var(--ink);
+      background:linear-gradient(to bottom right, rgba(18,28,48,.75), rgba(10,14,26,.78));
+      border:1px solid rgba(148,163,184,.25);
+      box-shadow: 0 15px 60px rgba(0,0,0,.45);
+      animation: pop .22s ease-out;
+    }
+    .auth-card::before{
+      content:""; position:absolute; inset:-2px; border-radius:22px; z-index:-1;
+      background:linear-gradient(135deg, rgba(34,197,94,.35), rgba(148,163,184,.15), rgba(59,130,246,.25));
+      filter: blur(12px); opacity:.6;
+    }
+    @keyframes pop{from{transform:scale(.98); opacity:.0} to{transform:scale(1); opacity:1}}
+    .headline{font-weight:800; font-size:22px; letter-spacing:.2px; margin:4px 0 2px}
+    .subline{color:var(--muted); font-size:13px; margin:0 0 14px}
+    .tabs{
+      display:flex; gap:6px; background:rgba(255,255,255,.05);
+      border:1px solid rgba(148,163,184,.25); border-radius:12px; padding:4px; margin-bottom:14px;
+    }
+    .tabs button{
+      flex:1; padding:8px 10px; border-radius:8px;
+      border:0; background:transparent; color:var(--ink); cursor:pointer; font-weight:700;
+    }
+    .tabs button.active{
+      background:linear-gradient(to bottom, rgba(34,197,94,.8), rgba(34,197,94,.65));
+      color:var(--accent-ink);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+
+    .auth form{display:grid; gap:10px}
+    .auth label{font-size:12px; color:var(--ink-dim)}
+    .field{
+      position:relative;
+    }
+    .auth input{
+      width:100%; padding:12px 40px 12px 12px; border-radius:12px;
+      border:1px solid rgba(148,163,184,.35);
+      background:rgba(255,255,255,.05); color:var(--ink);
+      outline:none;
+    }
+    .auth input:focus{box-shadow:0 0 0 2px var(--ring)}
+    .eye{
+      position:absolute; right:8px; top:50%; transform:translateY(-50%);
+      font-size:12px; color:#0c121f; background:#fff; border:0; border-radius:8px; padding:4px 8px; cursor:pointer;
+    }
+
+    .primary{
+      margin-top:4px; padding:12px; font-weight:800; border-radius:12px;
+      background:linear-gradient(to bottom, rgba(34,197,94,1), rgba(22,163,74,1));
+      color:var(--accent-ink); border:0; cursor:pointer;
+      box-shadow: 0 8px 20px rgba(34,197,94,.25);
+    }
+    .primary[disabled]{opacity:.7; cursor:not-allowed}
+    .small{font-size:12px; color:var(--ink-dim)}
+    .auth-error{margin-top:6px; color:#ffe2e2; min-height:18px}
   </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">
-      <div class="dot"></div><div class="title">AI Chatbot</div>
+      <div class="dot"></div><div class="title">Farm AI Chat</div>
       <span class="pill" id="api-pill"></span>
     </div>
     <div class="controls">
+      <span class="pill" id="userPill" title="Signed-in user">Guest</span>
       <div class="toggle" id="remember-toggle">
         <div class="switch" id="remember-switch" aria-hidden="true"></div>
         <span>Remember chat</span>
       </div>
       <button class="btn" id="newChatBtn">New chat</button>
+      <button class="btn" id="signOutBtn" style="display:none">Sign out</button>
     </div>
   </header>
 
@@ -99,24 +158,64 @@
     </div>
     <div class="row">
       <div class="kbd">Enter = send · Shift+Enter = newline</div>
-      <div class="kbd">Model: <span id="modelName">gpt-4o-mini</span></div>
+      <div class="kbd">Model: <span id="modelName">Claude 3.5 Haiku</span></div>
     </div>
   </footer>
 </div>
 
+<!-- ===== Auth Gate (no close) ===== -->
+<div class="auth" id="authGate" style="display:grid">
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="headline" id="authTitle">Welcome — Sign in to chat</div>
+    <p class="subline">Create an account or sign in to start using Farm AI Chat.</p>
+
+    <div class="tabs" role="tablist">
+      <button id="tabIn" class="active" type="button" role="tab" aria-selected="true" aria-controls="panelIn">Sign in</button>
+      <button id="tabUp" type="button" role="tab" aria-selected="false" aria-controls="panelUp">Create account</button>
+    </div>
+
+    <form id="signInForm" autocomplete="on" role="tabpanel" aria-labelledby="tabIn">
+      <div class="field">
+        <label for="inEmail">Email</label>
+        <input id="inEmail" type="email" required autofocus/>
+      </div>
+      <div class="field">
+        <label for="inPass">Password</label>
+        <input id="inPass" type="password" required minlength="6"/>
+        <button class="eye" type="button" data-eye="inPass">Show</button>
+      </div>
+      <button class="primary" id="btnIn" type="submit">Sign in</button>
+      <div class="small">Forgot password? <a href="#" id="resetLink">Send reset email</a></div>
+    </form>
+
+    <form id="signUpForm" autocomplete="on" hidden role="tabpanel" aria-labelledby="tabUp">
+      <div class="field">
+        <label for="upEmail">Email</label>
+        <input id="upEmail" type="email" required/>
+      </div>
+      <div class="field">
+        <label for="upPass">Password (min 6 chars)</label>
+        <input id="upPass" type="password" required minlength="6"/>
+        <button class="eye" type="button" data-eye="upPass">Show</button>
+      </div>
+      <button class="primary" id="btnUp" type="submit">Create account</button>
+    </form>
+
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
 <script>
-  /* ====== Config ====== */
-  const DEFAULT_API_URL = "https://fat-pike-35.deno.dev";   // <-- put your proxy URL here
+  /* ====== Chat Config ====== */
+  const DEFAULT_API_URL = "https://fat-pike-35.deno.dev";   // <-- swap for your proxy if needed
   const MODEL = "gpt-4o-mini";
   const SYS_PROMPT = "You are a helpful assistant.";
 
-  // URL overrides: ?api=..., ?bg=...
   const params = new URL(location.href).searchParams;
   const API = params.get("api") || DEFAULT_API_URL;
   const BG  = params.get("bg");
   if (BG) document.documentElement.style.setProperty("--bg-url", `url('${BG}')`);
 
-  // Elements
   const chatEl   = document.getElementById("chat");
   const inputEl  = document.getElementById("input");
   const sendBtn  = document.getElementById("sendBtn");
@@ -125,13 +224,14 @@
   const rememberSwitch = document.getElementById("remember-switch");
   const rememberToggle = document.getElementById("remember-toggle");
   const newChatBtn = document.getElementById("newChatBtn");
+  const userPill = document.getElementById("userPill");
+  const signOutBtn = document.getElementById("signOutBtn");
   apiPill.textContent = (function(u){ try{ return new URL(u).hostname }catch{ return u } })(API);
 
-  // State
   let messages = [];
   let busy = false;
+  window._signedIn = false; // set by Firebase module below
 
-  // Remember chat (off by default)
   const LS_KEY = "ai_chatbot_messages";
   const LS_REMEMBER = "ai_chatbot_remember";
   function loadRememberState(){
@@ -156,7 +256,6 @@
     }
   }
 
-  // UI helpers
   function showError(msg){ errBox.style.display="block"; errBox.textContent=msg }
   function clearError(){ errBox.style.display="none"; errBox.textContent="" }
   function addMsg(role, content){ messages.push({role,content}); renderOne(role,content); persist(); scrollToBottom(); }
@@ -184,6 +283,7 @@
   async function send(){
     const text = inputEl.value.trim();
     if (!text || busy) return;
+    if (!window._signedIn){ showError("Please sign in first."); return; }
     clearError();
     inputEl.value = "";
     addMsg("user", text);
@@ -192,7 +292,12 @@
 
     try{
       const payload = { model: MODEL, messages: [{role:"system", content: SYS_PROMPT}, ...messages] };
-      const res = await fetch(API, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
+
+      const headers = { "Content-Type":"application/json" };
+      // If your API expects a Firebase ID token, uncomment:
+      // if (window._idToken) headers["Authorization"] = "Bearer " + window._idToken;
+
+      const res = await fetch(API, { method:"POST", headers, body: JSON.stringify(payload) });
 
       let data=null, raw=""; try{ data = await res.json(); }catch{ try{ raw = await res.text(); }catch{} }
       if(!res.ok){
@@ -209,7 +314,6 @@
     }finally{ setBusy(false); }
   }
 
-  // Events
   sendBtn.addEventListener("click", send);
   inputEl.addEventListener("keydown", (e)=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }});
   document.getElementById("modelName").textContent = MODEL;
@@ -217,23 +321,134 @@
     const on = !(localStorage.getItem(LS_REMEMBER) === "1");
     setRemember(on); if (!on){ messages=[]; renderAll(); }
   });
-  document.getElementById("newChatBtn").addEventListener("click", ()=>{ messages=[]; persist(); renderAll(); });
+  newChatBtn.addEventListener("click", ()=>{ messages=[]; persist(); renderAll(); });
 
-  // Init
   loadHistory();
 </script>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyD5pioc6d74KBOybYv8rngLczV2Lh3mSgQ",
-  authDomain: "signinup-64675.firebaseapp.com",
-  projectId: "signinup-64675",
-  storageBucket: "signinup-64675.firebasestorage.app",
-  messagingSenderId: "505231459278",
-  appId: "1:505231459278:web:d840c6861199e659b9e19f",
-  measurementId: "G-HHML62CQTV"
-};
+<!-- ===== Firebase Auth (ES Modules) ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+    createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, getIdToken
+  } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+
+  /* User's Firebase project config */
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5pioc6d74KBOybYv8rngLczV2Lh3mSgQ",
+    authDomain: "signinup-64675.firebaseapp.com",
+    projectId: "signinup-64675",
+    storageBucket: "signinup-64675.firebasestorage.app",
+    messagingSenderId: "505231459278",
+    appId: "1:505231459278:web:d840c6861199e659b9e19f",
+    measurementId: "G-HHML62CQTV"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const authGate = document.getElementById("authGate");
+  const authError = document.getElementById("authError");
+  const tabIn = document.getElementById("tabIn");
+  const tabUp = document.getElementById("tabUp");
+  const signInForm = document.getElementById("signInForm");
+  const signUpForm = document.getElementById("signUpForm");
+  const btnIn = document.getElementById("btnIn");
+  const btnUp = document.getElementById("btnUp");
+  const resetLink = document.getElementById("resetLink");
+  const userPill = document.getElementById("userPill");
+  const signOutBtn = document.getElementById("signOutBtn");
+
+  function setTab(which){
+    const up = which === "up";
+    tabIn.classList.toggle("active", !up);
+    tabUp.classList.toggle("active", up);
+    tabIn.setAttribute("aria-selected", String(!up));
+    tabUp.setAttribute("aria-selected", String(up));
+    signInForm.hidden = up;
+    signUpForm.hidden = !up;
+    authError.textContent = "";
+    (up ? document.getElementById("upEmail") : document.getElementById("inEmail")).focus();
+  }
+  tabIn.addEventListener("click", ()=> setTab("in"));
+  tabUp.addEventListener("click", ()=> setTab("up"));
+
+  // Password show/hide
+  document.querySelectorAll(".eye").forEach(btn => {
+    btn.addEventListener("click", ()=>{
+      const id = btn.getAttribute("data-eye");
+      const inp = document.getElementById(id);
+      const isPwd = inp.type === "password";
+      inp.type = isPwd ? "text" : "password";
+      btn.textContent = isPwd ? "Hide" : "Show";
+      inp.focus();
+    });
+  });
+
+  function setBusy(form, busy){
+    const btn = form === signInForm ? btnIn : btnUp;
+    btn.disabled = busy;
+  }
+
+  function showAuthError(e){
+    const code = e?.code || "";
+    const msg = e?.message?.replace("Firebase: ", "") || String(e);
+    authError.textContent = `${code ? code + ": " : ""}${msg}`;
+  }
+
+  signInForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    authError.textContent = "";
+    setBusy(signInForm, true);
+    const email = document.getElementById("inEmail").value.trim();
+    const pass  = document.getElementById("inPass").value;
+    try{
+      await signInWithEmailAndPassword(auth, email, pass);
+    }catch(err){ showAuthError(err); }
+    finally{ setBusy(signInForm, false); }
+  });
+
+  signUpForm.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    authError.textContent = "";
+    setBusy(signUpForm, true);
+    const email = document.getElementById("upEmail").value.trim();
+    const pass  = document.getElementById("upPass").value;
+    try{
+      await createUserWithEmailAndPassword(auth, email, pass);
+    }catch(err){ showAuthError(err); }
+    finally{ setBusy(signUpForm, false); }
+  });
+
+  resetLink.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    authError.textContent = "";
+    const email = document.getElementById("inEmail").value.trim();
+    if (!email){ authError.textContent = "Enter your email above first."; return; }
+    try{
+      await sendPasswordResetEmail(auth, email);
+      authError.textContent = "Password reset email sent.";
+    }catch(err){ showAuthError(err); }
+  });
+
+  signOutBtn.addEventListener("click", ()=> signOut(auth));
+
+  onAuthStateChanged(auth, async (user)=>{
+    if (user){
+      window._signedIn = true;
+      userPill.textContent = user.email || user.uid;
+      signOutBtn.style.display = "inline-block";
+      authGate.style.display = "none";
+      try{ window._idToken = await getIdToken(user); }catch{ window._idToken = null; }
+    }else{
+      window._signedIn = false;
+      window._idToken = null;
+      userPill.textContent = "Guest";
+      signOutBtn.style.display = "none";
+      authGate.style.display = "grid";
+    }
+  });
 </script>
 </body>
 </html>
-
