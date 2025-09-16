@@ -1,46 +1,257 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>OpenAI Test</title>
+  <meta charset="utf-8"/>
+  <title>AI Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:24px}
-    textarea{width:100%;max-width:640px;height:100px}
-    pre{white-space:pre-wrap;background:#f6f7f9;padding:12px;border-radius:8px;max-width:640px}
+    :root{
+      --bg:#0b1220;--card:#0f172a;--muted:#1f2937;--ink:#e5e7eb;--ink-dim:#9ca3af;
+      --accent:#22c55e;--danger:#ef4444;--border:#334155;--bubble:#111827;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif}
+    .app{max-width:900px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:10}
+    .brand{display:flex;gap:10px;align-items:center}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+    .title{font-weight:700}
+    .controls{display:flex;align-items:center;gap:14px;color:var(--ink-dim)}
+    .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+    .switch{position:relative;width:42px;height:24px;border-radius:999px;background:var(--muted);transition:.2s;display:inline-block;vertical-align:middle}
+    .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+    .switch.on{background:var(--accent)}
+    .switch.on::after{left:21px}
+    .btn{border:1px solid var(--border);background:transparent;color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}
+    .btn:hover{border-color:#475569}
+    .error{display:none;margin:12px 20px 0;background:#1f2937;border:1px solid var(--danger);color:#fecaca;padding:10px 12px;border-radius:10px;white-space:pre-wrap}
+    .chat{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+    .msg{display:flex;gap:10px;max-width:85%}
+    .msg.user{align-self:flex-end;flex-direction:row-reverse}
+    .avatar{flex:0 0 32px;height:32px;border-radius:8px;background:var(--muted);display:grid;place-items:center;color:#cbd5e1;font-weight:700}
+    .bubble{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bubble);white-space:pre-wrap;word-break:break-word}
+    .msg.user .bubble{background:#111b2e}
+    .foot{padding:12px 20px;border-top:1px solid var(--border);background:var(--card)}
+    .composer{display:flex;gap:10px}
+    textarea{flex:1;resize:vertical;min-height:58px;max-height:40dvh;padding:12px;border-radius:12px;background:#0b1220;border:1px solid var(--border);color:var(--ink)}
+    .send{background:var(--accent);border:0;color:#06220f;padding:0 16px;border-radius:12px;font-weight:700;cursor:pointer}
+    .send[disabled]{opacity:.6;cursor:not-allowed}
+    .typing{opacity:.8}
+    .kbd{font:12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;color:var(--ink-dim)}
+    .pill{padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--ink-dim)}
+    .row{display:flex;align-items:center;gap:8px}
+    a{color:#93c5fd;text-decoration:none}
+    a:hover{text-decoration:underline}
   </style>
 </head>
 <body>
-  <h3>Ask:</h3>
-  <textarea id="q">What is a farm?</textarea><br/>
-  <button id="send">Send</button>
+<div class="app">
+  <header>
+    <div class="brand"><div class="dot"></div><div class="title">AI Chatbot</div><span class="pill" id="api-pill"></span></div>
+    <div class="controls">
+      <div class="toggle" id="remember-toggle">
+        <div class="switch" id="remember-switch" aria-hidden="true"></div>
+        <span>Remember chat</span>
+      </div>
+      <button class="btn" id="newChatBtn">New chat</button>
+    </div>
+  </header>
 
-  <h3>Answer:</h3>
-  <pre id="out">(waiting)</pre>
+  <div class="error" id="errorBox"></div>
 
-  <script>
-    const API = "https://fat-pike-35.deno.dev/"; // <-- paste your Deno Deploy URL
-    const $ = (id) => document.getElementById(id);
+  <main class="chat" id="chat"></main>
 
-    $("send").onclick = async () => {
-      $("out").textContent = "Sending...";
-      try {
-        const res = await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }, // no key in browser
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: $("q").value }]
-          })
-        });
-        const text = await res.text();
-        let data; try { data = JSON.parse(text); } catch {}
-        if (!res.ok) { $("out").textContent = `HTTP ${res.status}\n${text}`; return; }
-        $("out").textContent = data?.choices?.[0]?.message?.content || text;
-      } catch (e) {
-        $("out").textContent = "Fetch failed: " + (e?.message || e);
+  <footer class="foot">
+    <div class="composer">
+      <textarea id="input" placeholder="Type a message… (Shift+Enter for newline)"></textarea>
+      <button class="send" id="sendBtn">Send</button>
+    </div>
+    <div class="row" style="margin-top:8px;justify-content:space-between">
+      <div class="kbd">Enter = send · Shift+Enter = newline</div>
+      <div class="kbd">Model: <span id="modelName">gpt-4o-mini</span></div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // === Configuration (edit this line) ===
+  const DEFAULT_API_URL = "https://fat-pike-35.deno.dev"; // <— replace with your Deno Deploy URL (or working proxy)
+  const MODEL = "gpt-4o-mini";
+  const SYS_PROMPT = "You are a helpful assistant.";
+
+  // Allow ?api=https://... override without editing the file
+  const urlParams = new URL(location.href).searchParams;
+  const API = urlParams.get("api") || DEFAULT_API_URL;
+
+  // Elements
+  const chatEl   = document.getElementById("chat");
+  const inputEl  = document.getElementById("input");
+  const sendBtn  = document.getElementById("sendBtn");
+  const errBox   = document.getElementById("errorBox");
+  const apiPill  = document.getElementById("api-pill");
+  const rememberSwitch = document.getElementById("remember-switch");
+  const rememberToggle = document.getElementById("remember-toggle");
+  const newChatBtn = document.getElementById("newChatBtn");
+
+  apiPill.textContent = new URL(API).hostname;
+
+  // State
+  let messages = [];
+  let busy = false;
+
+  // Remember chat toggle (default OFF = clears each refresh)
+  const LS_KEY = "ai_chatbot_messages";
+  const LS_REMEMBER = "ai_chatbot_remember";
+  function loadRememberState(){
+    const on = localStorage.getItem(LS_REMEMBER) === "1";
+    rememberSwitch.classList.toggle("on", on);
+    return on;
+  }
+  function setRemember(on){
+    localStorage.setItem(LS_REMEMBER, on ? "1" : "0");
+    rememberSwitch.classList.toggle("on", on);
+    if (!on) localStorage.removeItem(LS_KEY);
+  }
+
+  // Load messages if remember is on
+  function loadHistory(){
+    if (loadRememberState()){
+      try { messages = JSON.parse(localStorage.getItem(LS_KEY) || "[]") } catch { messages = [] }
+    } else {
+      messages = [];
+    }
+    renderAll();
+  }
+  function persist(){
+    if (localStorage.getItem(LS_REMEMBER) === "1"){
+      localStorage.setItem(LS_KEY, JSON.stringify(messages));
+    }
+  }
+
+  // UI helpers
+  function showError(msg){
+    errBox.style.display = "block";
+    errBox.textContent = msg;
+  }
+  function clearError(){
+    errBox.style.display = "none";
+    errBox.textContent = "";
+  }
+  function addMsg(role, content){
+    messages.push({ role, content });
+    renderOne(role, content);
+    persist();
+    scrollToBottom();
+  }
+  function renderOne(role, content){
+    const row = document.createElement("div");
+    row.className = "msg " + (role === "user" ? "user" : "assistant");
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = role === "user" ? "U" : "A";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = content;
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    chatEl.appendChild(row);
+  }
+  function renderAll(){
+    chatEl.innerHTML = "";
+    messages.forEach(m => renderOne(m.role, m.content));
+    scrollToBottom();
+  }
+  function scrollToBottom(){ chatEl.scrollTop = chatEl.scrollHeight }
+
+  function setBusy(v){
+    busy = v;
+    sendBtn.disabled = v;
+    inputEl.disabled = v;
+  }
+
+  function typingBubble(){
+    const row = document.createElement("div");
+    row.className = "msg assistant typing";
+    const avatar = document.createElement("div");
+    avatar.className = "avatar"; avatar.textContent = "A";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = "…";
+    row.appendChild(avatar); row.appendChild(bubble);
+    chatEl.appendChild(row);
+    scrollToBottom();
+    return { row, bubble };
+  }
+
+  // Send flow (non-streaming)
+  async function send(){
+    const text = inputEl.value.trim();
+    if (!text || busy) return;
+    clearError();
+    inputEl.value = "";
+    addMsg("user", text);
+    setBusy(true);
+    const typing = typingBubble();
+
+    try{
+      const payload = {
+        model: MODEL,
+        messages: [{ role: "system", content: SYS_PROMPT }, ...messages]
+      };
+
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      let data=null, raw="";
+      try{ data = await res.json(); }catch{ try{ raw = await res.text(); }catch{} }
+
+      if(!res.ok){
+        const msg = data ? JSON.stringify(data) : (raw || res.statusText);
+        showError(`HTTP ${res.status}: ${msg}`);
+        typing.row.remove();
+        setBusy(false);
+        return;
       }
-    };
-  </script>
+
+      const assistant = data?.choices?.[0]?.message?.content ?? "";
+      typing.bubble.textContent = assistant || "(no content)";
+      messages.push({ role:"assistant", content: assistant || "(no content)" });
+      persist();
+      scrollToBottom();
+    }catch(e){
+      typing.row.remove();
+      showError(e?.message || String(e) || "Request failed");
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  // Events
+  sendBtn.addEventListener("click", send);
+  inputEl.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      send();
+    }
+  });
+  rememberToggle.addEventListener("click", ()=>{
+    const on = !(localStorage.getItem(LS_REMEMBER) === "1");
+    setRemember(on);
+    if (!on) { messages = []; renderAll(); }
+  });
+  newChatBtn.addEventListener("click", ()=>{
+    messages = [];
+    persist();
+    renderAll();
+  });
+
+  // Init
+  document.getElementById("modelName").textContent = MODEL;
+  loadHistory();
+</script>
 </body>
 </html>
 
