@@ -214,6 +214,7 @@
   /* ====== Chat Config ====== */
   const DEFAULT_API_URL = "https://fat-pike-35.deno.dev";   // <-- swap for your proxy if needed
   const MODEL = "gpt-4o-mini";
+  const MODELMODEL = "Claude 3.5 Haiku";
   const SYS_PROMPT = "You are a helpful assistant.";
 
   const params = new URL(location.href).searchParams;
@@ -321,7 +322,7 @@
 
   sendBtn.addEventListener("click", send);
   inputEl.addEventListener("keydown", (e)=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }});
-  document.getElementById("modelName").textContent = MODEL;
+  document.getElementById("modelName").textContent = MODELMODEL;
   rememberToggle.addEventListener("click", ()=>{
     const on = !(localStorage.getItem(LS_REMEMBER) === "1");
     setRemember(on); if (!on){ messages=[]; renderAll(); }
