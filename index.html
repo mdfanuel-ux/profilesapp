@@ -158,7 +158,7 @@
     </div>
     <div class="row">
       <div class="kbd">Enter = send · Shift+Enter = newline</div>
-      <div class="kbd">Model: <span id="modelName">Claude 3.5 Haiku</span></div>
+      <div class="kbd">Model: <span id="modelName">gpt-4o-mini</span></div>
     </div>
   </footer>
 </div>
@@ -198,6 +198,11 @@
         <input id="upPass" type="password" required minlength="6"/>
         <button class="eye" type="button" data-eye="upPass">Show</button>
       </div>
+      <div class="field">
+        <label for="upPass2">Confirm password</label>
+        <input id="upPass2" type="password" required minlength="6"/>
+        <button class="eye" type="button" data-eye="upPass2">Show</button>
+      </div>
       <button class="primary" id="btnUp" type="submit">Create account</button>
     </form>
 
@@ -209,7 +214,6 @@
   /* ====== Chat Config ====== */
   const DEFAULT_API_URL = "https://fat-pike-35.deno.dev";   // <-- swap for your proxy if needed
   const MODEL = "gpt-4o-mini";
-  const MODELMODEL = "Claude 3.5 Haiku";
   const SYS_PROMPT = "You are a helpful assistant.";
 
   const params = new URL(location.href).searchParams;
@@ -317,7 +321,7 @@
 
   sendBtn.addEventListener("click", send);
   inputEl.addEventListener("keydown", (e)=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }});
-  document.getElementById("modelName").textContent = MODELMODEL;
+  document.getElementById("modelName").textContent = MODEL;
   rememberToggle.addEventListener("click", ()=>{
     const on = !(localStorage.getItem(LS_REMEMBER) === "1");
     setRemember(on); if (!on){ messages=[]; renderAll(); }
@@ -451,5 +455,125 @@
     }
   });
 </script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  // Firebase config (same as index (17).html)
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5pioc6d74KBOybYv8rngLczV2Lh3mSgQ",
+    authDomain: "signinup-64675.firebaseapp.com",
+    projectId: "signinup-64675",
+    storageBucket: "signinup-64675.firebasestorage.app",
+    messagingSenderId: "505231459278",
+    appId: "1:505231459278:web:d840c6861199e659b9e19f",
+    measurementId: "G-HHML62CQTV"
+  };
+  try{ firebase.initializeApp(firebaseConfig); }catch(e){ /* ignore duplicate init */ }
+  const auth = firebase.auth();
+
+  // Elements
+  const gate       = document.getElementById("authGate");
+  const userPill   = document.getElementById("userPill");
+  const signOutBtn = document.getElementById("signOutBtn");
+  const inputEl    = document.getElementById("input");
+  const sendBtn    = document.getElementById("sendBtn");
+  const errBox     = document.getElementById("authError") || document.getElementById("errorBox");
+
+  const tabIn   = document.getElementById("tabIn");
+  const tabUp   = document.getElementById("tabUp");
+  const formIn  = document.getElementById("signInForm");
+  const formUp  = document.getElementById("signUpForm");
+  const inEmail = document.getElementById("inEmail");
+  const inPass  = document.getElementById("inPass");
+  const upEmail = document.getElementById("upEmail");
+  const upPass  = document.getElementById("upPass");
+  const upPass2 = document.getElementById("upPass2");
+  const resetLink = document.getElementById("resetLink");
+
+  function showError(msg){ if(!errBox) return; errBox.textContent = msg; errBox.style.display="block"; }
+  function clearError(){ if(!errBox) return; errBox.textContent = ""; errBox.style.display="none"; }
+
+  function showIn(){
+    tabIn.classList.add("active"); tabIn.setAttribute("aria-selected","true");
+    tabUp.classList.remove("active"); tabUp.setAttribute("aria-selected","false");
+    formIn.removeAttribute("hidden"); formIn.style.display="grid";
+    formUp.setAttribute("hidden",""); formUp.style.display="none";
+  }
+  function showUp(){
+    tabUp.classList.add("active"); tabUp.setAttribute("aria-selected","true");
+    tabIn.classList.remove("active"); tabIn.setAttribute("aria-selected","false");
+    formUp.removeAttribute("hidden"); formUp.style.display="grid";
+    formIn.setAttribute("hidden",""); formIn.style.display="none";
+  }
+
+  // default: Sign in visible (same as v9 look)
+  showIn();
+  tabIn?.addEventListener("click", (e)=>{ e.preventDefault(); showIn(); });
+  tabUp?.addEventListener("click", (e)=>{ e.preventDefault(); showUp(); });
+
+  // Eye buttons (password show/hide)
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("button.eye");
+    if(!btn) return;
+    e.preventDefault();
+    const id = btn.getAttribute("data-eye");
+    const input = id ? document.getElementById(id) : null;
+    if(!input) return;
+    const next = input.type === "password" ? "text" : "password";
+    input.type = next; btn.textContent = (next === "text") ? "Hide" : "Show";
+  });
+
+  // Email/Password Sign in
+  formIn?.addEventListener("submit", async (e)=>{
+    e.preventDefault(); clearError();
+    try{
+      await auth.signInWithEmailAndPassword(inEmail.value.trim(), inPass.value);
+    }catch(err){ showError((err && err.message) ? err.message.replace('Firebase: ', '') : 'Sign-in failed'); }
+  });
+
+  // Email/Password Sign up (with confirm check)
+  formUp?.addEventListener("submit", async (e)=>{
+    e.preventDefault(); clearError();
+    if (upPass.value !== upPass2.value){ showError("Passwords do not match"); return; }
+    try{
+      await auth.createUserWithEmailAndPassword(upEmail.value.trim(), upPass.value);
+    }catch(err){ showError((err && err.message) ? err.message.replace('Firebase: ', '') : 'Sign-up failed'); }
+  });
+
+  // Reset password
+  resetLink?.addEventListener("click", async (e)=>{
+    e.preventDefault(); clearError();
+    const email = inEmail.value.trim();
+    if(!email){ showError("Enter your email in the Sign in form first."); return; }
+    try{ await auth.sendPasswordResetEmail(email); showError("Reset email sent. Check your inbox."); }
+    catch(err){ showError(err.message || 'Reset failed'); }
+  });
+
+  // Auth state
+  auth.onAuthStateChanged(user => {
+    if(user){
+      gate.style.display = "none";
+      if (userPill) userPill.textContent = user.displayName || user.email || "User";
+      if (signOutBtn) signOutBtn.style.display = "inline-block";
+      if (inputEl) inputEl.disabled = false;
+      if (sendBtn) sendBtn.disabled = false;
+    }else{
+      gate.style.display = "grid";
+      if (userPill) userPill.textContent = "Guest";
+      if (signOutBtn) signOutBtn.style.display = "none";
+      if (inputEl) inputEl.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+    }
+  });
+
+  // Sign out
+  signOutBtn?.addEventListener("click", async ()=>{
+    try{ await auth.signOut(); }catch(err){ showError(err.message || 'Sign-out failed'); }
+  });
+})();
+</script>
+
 </body>
 </html>
