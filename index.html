@@ -54,8 +54,20 @@
     .msg{display:flex;gap:10px;max-width:85%}
     .msg.user{align-self:flex-end;flex-direction:row-reverse}
     .avatar{flex:0 0 32px;height:32px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#f1f5f9;font-weight:700}
-    .bubble{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bubble);backdrop-filter: blur(4px);white-space:pre-wrap;word-break:break-word}
-    .msg.user .bubble{background:var(--bubble-user)}
+    .bubble{
+      padding:11px 13px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:var(--bubble);
+      backdrop-filter: blur(4px);
+      white-space:pre-wrap;
+      word-break:break-word;
+      line-height:1.6;
+      box-shadow:0 8px 18px rgba(0,0,0,0.18);
+    }
+    .msg.user .bubble{
+      background:var(--bubble-user);
+    }
     .typing{opacity:.85}
 
     .foot{margin:0 12px 12px;border-radius:16px;padding:12px}
