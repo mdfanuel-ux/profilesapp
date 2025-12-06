@@ -88,7 +88,25 @@
 
     .error{display:none;margin:0 12px 8px;background:rgba(239,68,68,.15);border:1px solid var(--danger);color:#ffe2e2;padding:10px 12px;border-radius:12px;white-space:pre-wrap}
 
-    .chat{flex:1;overflow:auto;padding:8px 12px;display:flex;flex-direction:column;gap:12px}
+    .chat {
+      flex: 1;
+      overflow: auto;           /* internal scroll only */
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Hide internal scrollbar */
+    .chat {
+      -ms-overflow-style: none;  /* IE/Edge */
+      scrollbar-width: none;     /* Firefox */
+    }
+    
+    .chat::-webkit-scrollbar {
+      display: none;             /* Chrome/Safari */
+    }
+    
     .msg{display:flex;gap:10px;max-width:85%}
     .msg.user{align-self:flex-end;flex-direction:row-reverse}
     .avatar{flex:0 0 32px;height:32px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#f1f5f9;font-weight:700}
