@@ -401,7 +401,11 @@
     
     const bubble = document.createElement("div");
     bubble.className = "bubble bubble-content"; 
-    bubble.innerHTML = marked.parse(content);   // render markdown
+    bubble.innerHTML = marked.parse(content);  
+    
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    chatEl.appendChild(row);
   }
   function renderAll(){ chatEl.innerHTML=""; messages.forEach(m=>renderOne(m.role,m.content)); scrollToBottom(); }
   function scrollToBottom(){ chatEl.scrollTop = chatEl.scrollHeight }
