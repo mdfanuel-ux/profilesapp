@@ -379,6 +379,7 @@
   }
 
   // Send (non-streaming)
+  /*
   async function send(){
     const text = inputEl.value.trim();
     if (!text || busy) return;
@@ -411,6 +412,45 @@
     }catch(e){
       typing.row.remove(); showError(e?.message || String(e) || "Request failed");
     }finally{ setBusy(false); }
+  }
+
+  */
+  async function send(){
+    const text = inputEl.value.trim();
+    if (!text || busy) return;
+    if (!window._signedIn){ showError("Please sign in first."); return; }
+    
+    clearError();
+    inputEl.value = "";
+    addMsg("user", text);
+    setBusy(true);
+    
+    const typing = typingBubble();
+    
+    try {
+      // NEW PAYLOAD FOR RAG BACKEND
+      const payload = { query: text };
+      
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await res.json();
+      
+      const assistant = data?.answer || data?.choices?.[0]?.message?.content || "(no content)";
+      
+      typing.bubble.textContent = assistant;
+      messages.push({ role: "assistant", content: assistant });
+      persist();
+      scrollToBottom();
+    } catch (e) {
+      typing.row.remove();
+      showError(e?.message || String(e) || "Request failed");
+    } finally {
+      setBusy(false);
+    }
   }
 
   sendBtn.addEventListener("click", send);
