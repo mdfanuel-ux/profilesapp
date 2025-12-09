@@ -429,7 +429,10 @@
     
     try {
       // NEW PAYLOAD FOR RAG BACKEND
-      const payload = { query: text };
+      const payload = {
+        mode: "search",
+        question: text
+      };
       
       const res = await fetch(API, {
         method: "POST",
