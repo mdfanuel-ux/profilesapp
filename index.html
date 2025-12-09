@@ -444,7 +444,12 @@
       
       const assistant = data?.answer || data?.choices?.[0]?.message?.content || "(no content)";
       
-      typing.bubble.textContent = assistant;
+      //typing.bubble.textContent = assistant;
+      //messages.push({ role: "assistant", content: assistant });
+      if (data.citations && data.citations.length) {
+        typing.bubble.textContent += "\n\nCITATIONS:\n" + data.citations.map(c => `(${c.id}) ${c.url}`).join("\n");
+      }
+    
       messages.push({ role: "assistant", content: assistant });
       persist();
       scrollToBottom();
